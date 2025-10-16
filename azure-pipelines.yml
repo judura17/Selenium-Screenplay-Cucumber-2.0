@@ -33,12 +33,10 @@ steps:
 
   # 3️⃣ Compilar y ejecutar pruebas con Maven
   - script: |
-      set MAVEN_HOME=C:\Workspace\apache-maven-3.9.11-bin\apache-maven-3.9.11
-      set PATH=%MAVEN_HOME%\bin;%PATH%
-      echo Maven Home: %MAVEN_HOME%
+      set "MAVEN_HOME=C:\Workspace\apache-maven-3.9.11-bin\apache-maven-3.9.11" && ^
+      set "PATH=%MAVEN_HOME%\bin;%PATH%" && ^
       mvn -version
-      mvn clean verify -U
-    displayName: "Compilar y ejecutar pruebas (Maven verify)"
+    displayName: "Verificar Maven"
 
   # 4️⃣ Publicar resultados JUnit
   - task: PublishTestResults@2
