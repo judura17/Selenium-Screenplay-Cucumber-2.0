@@ -1,6 +1,6 @@
 # ===========================================
 # Pipeline CI para Selenium Screenplay Cucumber 2.0
-# Autor: Oscar Julian Duque Ramos
+# Compatible con Azure Pipelines 2025
 # ===========================================
 
 trigger:
@@ -10,7 +10,6 @@ trigger:
       - develop
       - feature/*
 
-# Usa un agente de Ubuntu (Linux)
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -22,11 +21,12 @@ steps:
   - task: Checkout@1
     displayName: "Checkout del repositorio"
 
-  # 2️⃣ Configurar JDK 17 (ajusta si tu proyecto usa otra versión)
-  - task: UseJavaVersion@1
+  # 2️⃣ Instalar Java 17 (uso del nuevo task)
+  - task: JavaToolInstaller@0
     inputs:
       versionSpec: '17'
-      distribution: 'temurin'
+      jdkArchitecture: 'x64'
+      jdkSourceOption: 'PreInstalled'
     displayName: "Configurar JDK 17"
 
   # 3️⃣ Compilar y ejecutar pruebas con Maven
