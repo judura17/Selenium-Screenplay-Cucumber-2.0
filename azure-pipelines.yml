@@ -1,6 +1,6 @@
 # ===========================================
 # Pipeline CI para Selenium Screenplay Cucumber 2.0
-# Compatible con Azure Pipelines 2025
+# Versión estable 2025 sin tareas obsoletas
 # ===========================================
 
 trigger:
@@ -18,30 +18,32 @@ variables:
 
 steps:
   # 1️⃣ Checkout del código
-  - task: Checkout@1
+  - checkout: self
     displayName: "Checkout del repositorio"
 
-  # 2️⃣ Instalar Java 17 (uso del nuevo task)
-  - task: JavaToolInstaller@0
-    inputs:
-      versionSpec: '17'
-      jdkArchitecture: 'x64'
-      jdkSourceOption: 'PreInstalled'
-    displayName: "Configurar JDK 17"
+  # 2️⃣ Configurar Java 17 manualmente (más estable)
+  - script: |
+      echo "Instalando JDK 17..."
+      sudo apt-get update
+      sudo apt-get install -y openjdk-17-jdk
+      java -version
+      echo "JAVA_HOME configurado:"
+      echo "##vso[task.setvariable variable=JAVA_HOME]/usr/lib/jvm/java-17-openjdk-amd64"
+    displayName: "Instalar y configurar JDK 17"
 
   # 3️⃣ Compilar y ejecutar pruebas con Maven
   - script: |
       mvn clean verify -U
     displayName: "Compilar y ejecutar pruebas (Maven verify)"
 
-  # 4️⃣ Publicar resultados JUnit/Cucumber
+  # 4️⃣ Publicar resultados JUnit
   - task: PublishTestResults@2
     displayName: "Publicar resultados de pruebas"
     inputs:
       testResultsFiles: '**/surefire-reports/*.xml'
       testRunTitle: 'Resultados Selenium Screenplay'
 
-  # 5️⃣ Publicar reportes HTML como artefactos
+  # 5️⃣ Publicar reportes HTML de Serenity/Cucumber
   - task: PublishBuildArtifacts@1
     displayName: "Publicar reportes HTML"
     inputs:
@@ -49,7 +51,7 @@ steps:
       ArtifactName: 'Reports'
       publishLocation: 'Container'
 
-  # 6️⃣ (Opcional) Guardar reportes Cucumber si están en carpeta específica
+  # 6️⃣ (Opcional) Publicar reportes de Cucumber
   - task: PublishBuildArtifacts@1
     displayName: "Publicar reportes Cucumber"
     condition: succeededOrFailed()
