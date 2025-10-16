@@ -1,22 +1,59 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+# ===========================================
+# Pipeline CI para Selenium Screenplay Cucumber 2.0
+# Autor: Oscar Julian Duque Ramos
+# ===========================================
 
 trigger:
-- main
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
 
+# Usa un agente de Ubuntu (Linux)
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
+
+variables:
+  MAVEN_OPTS: "-Dmaven.test.failure.ignore=false"
 
 steps:
-- task: Maven@3
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+  # 1️⃣ Checkout del código
+  - task: Checkout@1
+    displayName: "Checkout del repositorio"
+
+  # 2️⃣ Configurar JDK 17 (ajusta si tu proyecto usa otra versión)
+  - task: UseJavaVersion@1
+    inputs:
+      versionSpec: '17'
+      distribution: 'temurin'
+    displayName: "Configurar JDK 17"
+
+  # 3️⃣ Compilar y ejecutar pruebas con Maven
+  - script: |
+      mvn clean verify -U
+    displayName: "Compilar y ejecutar pruebas (Maven verify)"
+
+  # 4️⃣ Publicar resultados JUnit/Cucumber
+  - task: PublishTestResults@2
+    displayName: "Publicar resultados de pruebas"
+    inputs:
+      testResultsFiles: '**/surefire-reports/*.xml'
+      testRunTitle: 'Resultados Selenium Screenplay'
+
+  # 5️⃣ Publicar reportes HTML como artefactos
+  - task: PublishBuildArtifacts@1
+    displayName: "Publicar reportes HTML"
+    inputs:
+      PathtoPublish: 'target/site'
+      ArtifactName: 'Reports'
+      publishLocation: 'Container'
+
+  # 6️⃣ (Opcional) Guardar reportes Cucumber si están en carpeta específica
+  - task: PublishBuildArtifacts@1
+    displayName: "Publicar reportes Cucumber"
+    condition: succeededOrFailed()
+    inputs:
+      PathtoPublish: 'target/cucumber-reports'
+      ArtifactName: 'CucumberReports'
+      publishLocation: 'Container'
